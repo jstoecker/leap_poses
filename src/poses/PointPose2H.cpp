@@ -72,6 +72,7 @@ bool PointPose2H::shouldDisengage(const Frame& frame)
 
 void PointPose2H::engage(const Frame& frame)
 {
+	Pose2H::engage(frame);
 	left_pointer_prev_ = left_pointer_;
 	left_pointer_engaged_ = left_pointer_;
 	right_pointer_prev_ = right_pointer_;
@@ -83,7 +84,7 @@ Vector PointPose2H::fingerCenter(bool stabilized) const
 	if (stabilized) {
 		return (left_pointer_.stabilizedTipPosition() + right_pointer_.stabilizedTipPosition()) * 0.5f;
 	}
-	return (left_pointer_.tipPosition() + left_pointer_.tipPosition()) * 0.5f;
+	return (left_pointer_.tipPosition() + right_pointer_.tipPosition()) * 0.5f;
 }
 
 Vector PointPose2H::fingerCenterEngaged(bool stabilized) const

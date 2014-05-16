@@ -109,3 +109,37 @@ Vector Pose2H::handsCenterDelta(bool stabilized) const
 {
 	return handsCenter(stabilized) - handsCenterPrevious(stabilized);
 }
+
+float Pose2H::handsSeparation(bool stabilized) const
+{
+	if (stabilized) {
+		return (right_.stabilizedPalmPosition() - left_.stabilizedPalmPosition()).magnitude();
+	}
+	return (right_.palmPosition() - left_.palmPosition()).magnitude();
+}
+
+float Pose2H::handsSeparationEngaged(bool stabilized) const
+{
+	if (stabilized) {
+		return (right_engaged_.stabilizedPalmPosition() - left_engaged_.stabilizedPalmPosition()).magnitude();
+	}
+	return (right_engaged_.palmPosition() - left_engaged_.palmPosition()).magnitude();
+}
+
+float Pose2H::handsSeparationPrevious(bool stabilized) const
+{
+	if (stabilized) {
+		return (right_previous_.stabilizedPalmPosition() - left_previous_.stabilizedPalmPosition()).magnitude();
+	}
+	return (right_previous_.palmPosition() - left_previous_.palmPosition()).magnitude();
+}
+
+float Pose2H::handsSeparationDelta(bool stabilized) const
+{
+	return handsSeparation(stabilized) - handsSeparationPrevious(stabilized);
+}
+
+float Pose2H::handsSeparationDeltaEngaged(bool stabilized) const
+{
+	return handsSeparation(stabilized) - handsSeparationEngaged(stabilized);
+}

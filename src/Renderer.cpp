@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <initializer_list>
 
 using namespace gl;
 using namespace std;
@@ -6,7 +7,7 @@ using namespace Leap;
 
 Renderer::Renderer() : vao_(0)
 {
-	grid_size_ = 5.0f;
+	grid_size_ = 25.0f;
 	text_label_ = "Pose: None";
 }
 
@@ -17,7 +18,7 @@ void Renderer::init()
 
 	grid_.begin(GL_LINES);
 	grid_.color(.3f, .3f, .3f);
-	int lines = 8;
+	int lines = 18;
 	float step = grid_size_ / (lines - 1);
 	float half = grid_size_ / 2.0f;
 	for (int i = 0; i < lines; i++) {
@@ -68,10 +69,14 @@ void Renderer::draw()
 		drawFrame();
 	}
 
-	text_.begin(viewport_.width, viewport_.height);
-	text_.setColor(1.0f, 1.0f, 1.0f);
-	text_.add(text_label_, 50, viewport_.height - 50, TextRenderer::LEFT, TextRenderer::TOP);
-	text_.end();
+	int y = viewport_.height - 50;
+	for (const ActivePose& active : active_poses_) {
+		text_.begin(viewport_.width, viewport_.height);
+		text_.setColor(active.color.x, active.color.y, active.color.z);
+		text_.add(active.name, 50, y, TextRenderer::LEFT, TextRenderer::TOP);
+		y -= 25;
+		text_.end();
+	}
 }
 
 void Renderer::drawFrame()
@@ -83,7 +88,23 @@ void Renderer::drawFrame()
 
 void Renderer::drawHand(const Hand& hand)
 {
-	Vec4 base_color = color_;
+	Vec4 base_color;
+
+	for (const ActivePose& active : active_poses_) {
+
+		bool thisHand = false;
+		for (int32_t active_hand : active.hands) {
+			if (hand.id() == active_hand)
+				thisHand = true;
+		}
+
+		if (thisHand)
+			base_color = Vec4(active.color, 1.0f);
+	}
+
+	if (base_color.length() == 0) {
+		base_color = Vec4(.5f);
+	}
 
 	prog_.enable();
 	joint_vbo_.bind();
@@ -170,74 +191,59 @@ void Renderer::updatePoses()
 	color_ = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
 	text_label_ = "Pose: None";
 
-	carry_pose_.update(frame_);
-	if (carry_pose_.tracking()) {
-		text_label_ = "Pose: CARRY";
-		color_ = Vec4(1.0f, 0.25f, 0.5f, 1.0f);
-		return;
+	active_poses_.clear();
+
+	fist_pose_.update(frame_);
+	if (fist_pose_.tracking()) {
+		if (fist_pose_.state() == FistPose::State::closed) {
+			active_poses_.push_back({ "Fist (closed", { 0.6f, 0.25f, 0.25f }, { fist_pose_.hand().id() } });
+		} else if (fist_pose_.state() == FistPose::State::open) {
+			active_poses_.push_back({ "Fist (open)", { 0.75f, 0.75f, 0.85f }, { fist_pose_.hand().id() } });
+		}
 	}
 
-	//point_2_pose_.update(frame_);
-	//if (point_2_pose_.tracking()) {
-	//	text_label_ = "Pose: POINT 2H";
-	//	color_ = Vec4(1.0f, 0.5f, 0.5f, 1.0f);
-	//	return;
-	//}
+	carry_pose_.update(frame_);
+	if (carry_pose_.tracking()) {
+		active_poses_.push_back({  "Carry" , { 1.0f, 0.25f, 0.75f }, {carry_pose_.hand().id()} });
+	}
 
-	//v_pose_.update(frame_);
-	//if (v_pose_.tracking()) {
-	//	if (v_pose_.isClosed()) {
-	//		text_label_ = "Pose: V (closed)";
-	//		color_ = Vec4(1.0f, 0.25f, 1.0f, 1.0f);
-	//	} else {
-	//		text_label_ = "Pose: V (open)";
-	//		color_ = Vec4(1.0f, 0.5f, 1.0f, 1.0f);
-	//	}
-	//	return;
-	//}
+	point_2_pose_.update(frame_);
+	if (point_2_pose_.tracking()) {
+		active_poses_.push_back({ "Point 2H", { 1.0f, 0.25f, 0.25f }, { point_2_pose_.left().id(), point_2_pose_.right().id() } });
+	}
+
+	v_pose_.update(frame_);
+	if (v_pose_.tracking()) {
+		if (v_pose_.isClosed()) {
+			active_poses_.push_back({ "V (closed)", { 1.0f, 0.5f, 0.0f }, { v_pose_.hand().id() } });
+		} else {
+			active_poses_.push_back({ "V (open)", { 1.0f, 0.5f, 0.0f }, { v_pose_.hand().id() } });
+		}
+	}
 
 	l_pose_.update(frame_);
 	if (l_pose_.tracking()) {
 		if (l_pose_.isClosed()) {
-			text_label_ = "Pose: L (closed)";
-			color_ = Vec4(0.25f, 1.0f, 0.25f, 1.0f);
+			active_poses_.push_back({ "L (closed)", { 0.0f, 1.0f, 0.0f }, { l_pose_.hand().id() } });
 		} else {
-			text_label_ = "Pose: L (open)";
-			color_ = Vec4(0.5f, 1.0f, 0.5f, 1.0f);
+			active_poses_.push_back({ "L (open)", { 0.25f, 1.0f, 0.25f }, { l_pose_.hand().id() } });
 		}
-		return;
 	}
 
-	//point_pose_.update(frame_);
-	//if (point_pose_.tracking()) {
-	//	text_label_ = "Pose: POINT";
-	//	color_ = Vec4(0.5f, 0.5f, 1.0f, 1.0f);
-	//	return;
-	//}
+	point_pose_.update(frame_);
+	if (point_pose_.tracking()) {
+		active_poses_.push_back({ "Point", { 0.0f, 0.0f, 1.0f }, { point_pose_.hand().id() } });
+	}
 
 	pinch_pose_.update(frame_);
 	if (pinch_pose_.tracking()) {
 		if (pinch_pose_.isPinching()) {
-			text_label_ = "Pose: PINCH (closed)";
-			color_ = Vec4(1.0f, 1.0f, 0.25f, 1.0f);
-		} else {
-			text_label_ = "Pose: PINCH (open)";
-			color_ = Vec4(1.0f, 1.0f, 0.5f, 1.0f);
+			active_poses_.push_back({ "Pinch", { 1.0f, 1.0f, 0.0f }, { pinch_pose_.hand().id() } });
 		}
-		return;
 	}
 
-	//fist_pose_.update(frame_);
-	//if (fist_pose_.tracking()) {
-	//	if (fist_pose_.state() == FistPose::State::closed) {
-	//		text_label_ = "Pose: FIST (closed)";
-	//		color_ = Vec4(1.0f, 0.5f, 0.5f, 1.0f);
-	//	} else if (fist_pose_.state() == FistPose::State::open) {
-	//		text_label_ = "Pose: FIST (partial)";
-	//		color_ = Vec4(0.5f, 1.0f, 0.5f, 1.0f);
-	//	} else {
-	//		text_label_ = "Pose: FIST (open)";
-	//		color_ = Vec4(1.0f, 1.0f, 0.5f, 1.0f);
-	//	}
-	//}
+	palms_face_pose_.update(frame_);
+	if (palms_face_pose_.tracking()) {
+		active_poses_.push_back({ "Palms Face", { 0.0f, 1.0f, 1.0f }, { palms_face_pose_.left().id(), palms_face_pose_.right().id() } });
+	}
 }

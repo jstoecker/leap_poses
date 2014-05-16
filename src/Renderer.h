@@ -14,6 +14,8 @@
 #include "poses/PinchPose.h"
 #include "poses/PointPose2H.h"
 #include "poses/CarryPose.h"
+#include "poses/PalmsFacePose.h"
+#include <vector>
 
 class Renderer
 {
@@ -23,6 +25,14 @@ public:
 	void resize(int width, int height);
 
 private:
+
+	struct ActivePose
+	{
+		std::string name;
+		gl::Vec3 color;
+		std::vector<int32_t> hands;
+	};
+
 	std::string text_label_;
 	TextRenderer text_;
 	gl::Vec4 color_;
@@ -33,6 +43,7 @@ private:
 	gl::Buffer joint_vbo_;
 	gl::Buffer joint_ibo_;
 	GLuint joint_triangle_count_;
+	std::vector<ActivePose> active_poses_;
 
 	GLuint vao_;
 	gl::Mat4 viewProjection_;
@@ -47,6 +58,7 @@ private:
 	PinchPose pinch_pose_;
 	PointPose2H point_2_pose_;
 	CarryPose carry_pose_;
+	PalmsFacePose palms_face_pose_;
 
 	void init();
 	void drawGrid();

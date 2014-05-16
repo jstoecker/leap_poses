@@ -42,6 +42,21 @@ public:
 	/** Difference in current hands center and hands center when engaged */
 	Leap::Vector handsCenterDeltaEngaged(bool stabilized = false) const;
 
+	/** Millimeters between left and right palm positions */
+	float handsSeparation(bool stabilized = false) const;
+
+	/** Millimeters between left and right palm positions when engaged */
+	float handsSeparationEngaged(bool stabilized = false) const;
+
+	/** Millimeters between left and right palm positions from previous frame */
+	float handsSeparationPrevious(bool stabilized = false) const;
+
+	/** Difference from hand separation in previous frame */
+	float handsSeparationDelta(bool stabilized = false) const;
+
+	/** Difference from hand separation in engaged frame */
+	float handsSeparationDeltaEngaged(bool stabilized = false) const;
+
 protected:
 	virtual bool shouldEngage(const Leap::Frame& frame) override;
 	virtual bool shouldDisengage(const Leap::Frame& frame) override;
