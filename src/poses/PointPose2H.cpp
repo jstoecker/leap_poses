@@ -4,7 +4,7 @@ using namespace Leap;
 
 PointPose2H::PointPose2H()
 {
-	minValidFrames(5);
+	minValidFrames(0);
 	maxHandEngageSpeed(100.0f);
 }
 
@@ -89,4 +89,11 @@ Vector PointPose2H::deltaCenterEngaged() const
 	Vector curr_c = (left_pointer_.tipPosition() + right_pointer_.tipPosition()) * 0.5f;
 	Vector engd_c = (left_pointer_engaged_.tipPosition() + right_pointer_engaged_.tipPosition()) * 0.5f;
 	return curr_c - engd_c;
+}
+
+float PointPose2H::gapEngaged() const
+{
+	float curr = (left_pointer_.tipPosition() - right_pointer_.tipPosition()).magnitude();
+	float eng = (left_pointer_engaged_.tipPosition() - right_pointer_engaged_.tipPosition()).magnitude();
+	return curr - eng;
 }

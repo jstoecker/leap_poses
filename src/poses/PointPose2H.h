@@ -19,6 +19,8 @@ public:
 	Leap::Vector deltaCenter() const;
 	Leap::Vector deltaCenterEngaged() const;
 
+	float gapEngaged() const;
+
 protected:
 	bool shouldEngage(const Leap::Frame& frame) override;
 	bool shouldDisengage(const Leap::Frame& frame) override;

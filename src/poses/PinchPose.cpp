@@ -43,14 +43,14 @@ bool PinchPose::shouldDisengage(const Frame& frame)
 void PinchPose::track(const Frame& frame)
 {
 	if (pinching_) {
-		if (hand().pinchStrength() <= release_strength_) {
+		if (hand().confidence() > 0.75f && hand().pinchStrength() <= release_strength_) {
 			pinching_ = false;
 			if (open_fn_) {
 				open_fn_(frame);
 			}
 		}
 	} else {
-		if (hand().pinchStrength() >= pinch_strength_) {
+		if (hand().confidence() > 0.75f && hand().pinchStrength() >= pinch_strength_) {
 			hand_pinched_ = hand();
 			pinching_ = true;
 			if (close_fn_) {

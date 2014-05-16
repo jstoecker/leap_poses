@@ -81,6 +81,7 @@ void Pose::tracking(bool tracking)
 {
 	tracking_ = tracking;
 	total_elapsed_ = milliseconds(0);
+	valid_frames_ = 0;
 }
 
 void Pose::engage(const Frame& frame)

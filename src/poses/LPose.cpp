@@ -1,9 +1,11 @@
 #include "LPose.h"
 
 using namespace Leap;
+using namespace std::chrono;
 
 LPose::LPose() :
 	closed_(false),
+	last_close_(high_resolution_clock::now()),
 	open_fn_(nullptr),
 	close_fn_(nullptr)
 {
@@ -78,9 +80,20 @@ void LPose::track(const Frame& frame)
 	bool was_closed = closed_;
 	closed_ = (angle <= 0.3f);
 
-	if (open_fn_ && was_closed && !closed_) {
-		open_fn_(frame);
-	} else if (close_fn_ && !was_closed && closed_) {
-		close_fn_(frame);
+	if (hand().confidence() > 0.75f && was_closed && !closed_) {
+		if (open_fn_) {
+			open_fn_(frame);
+		}
+		if (click_fn_) {
+			auto elapsed = duration_cast<milliseconds>(high_resolution_clock::now() - last_close_);
+			if (elapsed.count() < 200.0f) {
+				click_fn_(frame);
+			}
+		}
+	} else if (hand().confidence() > 0.75f && !was_closed && closed_) {
+		if (close_fn_) {
+			close_fn_(frame);
+		}
+		last_close_ = high_resolution_clock::now();
 	}
 }
