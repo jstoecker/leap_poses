@@ -21,12 +21,31 @@ public:
 	/** Maximum speed either hand can be moving in mm/sec to engage. Use speed <= 0 for any speed. */
 	void maxHandEngageSpeed(float speed) { max_hand_engage_speed_ = speed; }
 
+	/** Speed at which hands are considered exiting */
+	void exitSpeed(float speed) { exit_speed_ = speed; }
+
+	/** Tracking should disengage if hands are moving at or above exit speed in +Z */
+	void disengageOnExit(bool disengage_on_exit) { disengage_on_exit_ = disengage_on_exit; }
+
+	/** Average of both palm positions */
+	Leap::Vector handsCenter(bool stabilized = false) const;
+
+	/** Average of palm positions from previous frame */
+	Leap::Vector handsCenterPrevious(bool stabilized = false) const;
+
+	/** Average of palm positions when engaged */
+	Leap::Vector handsCenterEngaged(bool stabilized = false) const;
+
+	/** Difference in current hands center and hands center from previous frame */
+	Leap::Vector handsCenterDelta(bool stabilized = false) const;
+
+	/** Difference in current hands center and hands center when engaged */
+	Leap::Vector handsCenterDeltaEngaged(bool stabilized = false) const;
+
 protected:
 	virtual bool shouldEngage(const Leap::Frame& frame) override;
 	virtual bool shouldDisengage(const Leap::Frame& frame) override;
 	virtual void engage(const Leap::Frame& frame) override;
-	virtual void disengage(const Leap::Frame& frame) override;
-	virtual void track(const Leap::Frame& frame) override;
 
 private:
 	Leap::Hand left_;
@@ -36,6 +55,8 @@ private:
 	Leap::Hand right_previous_;
 	Leap::Hand right_engaged_;
 	float max_hand_engage_speed_;
+	float exit_speed_;
+	bool disengage_on_exit_;
 };
 
 #endif

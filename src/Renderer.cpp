@@ -170,11 +170,19 @@ void Renderer::updatePoses()
 	color_ = Vec4(0.5f, 0.5f, 0.5f, 1.0f);
 	text_label_ = "Pose: None";
 
-	point_2_pose_.update(frame_);
-	if (point_2_pose_.tracking()) {
-		text_label_ = "Pose: POINT 2H";
-		color_ = Vec4(0.5f, 1.0f, 0.5f, 1.0f);
+	carry_pose_.update(frame_);
+	if (carry_pose_.tracking()) {
+		text_label_ = "Pose: CARRY";
+		color_ = Vec4(1.0f, 0.25f, 0.5f, 1.0f);
+		return;
 	}
+
+	//point_2_pose_.update(frame_);
+	//if (point_2_pose_.tracking()) {
+	//	text_label_ = "Pose: POINT 2H";
+	//	color_ = Vec4(1.0f, 0.5f, 0.5f, 1.0f);
+	//	return;
+	//}
 
 	//v_pose_.update(frame_);
 	//if (v_pose_.tracking()) {
@@ -188,17 +196,17 @@ void Renderer::updatePoses()
 	//	return;
 	//}
 
-	//l_pose_.update(frame_);
-	//if (l_pose_.tracking()) {
-	//	if (l_pose_.isClosed()) {
-	//		text_label_ = "Pose: L (closed)";
-	//		color_ = Vec4(0.25f, 1.0f, 0.25f, 1.0f);
-	//	} else {
-	//		text_label_ = "Pose: L (open)";
-	//		color_ = Vec4(0.5f, 1.0f, 0.5f, 1.0f);
-	//	}
-	//	return;
-	//}
+	l_pose_.update(frame_);
+	if (l_pose_.tracking()) {
+		if (l_pose_.isClosed()) {
+			text_label_ = "Pose: L (closed)";
+			color_ = Vec4(0.25f, 1.0f, 0.25f, 1.0f);
+		} else {
+			text_label_ = "Pose: L (open)";
+			color_ = Vec4(0.5f, 1.0f, 0.5f, 1.0f);
+		}
+		return;
+	}
 
 	//point_pose_.update(frame_);
 	//if (point_pose_.tracking()) {
@@ -207,17 +215,17 @@ void Renderer::updatePoses()
 	//	return;
 	//}
 
-	//pinch_pose_.update(frame_);
-	//if (pinch_pose_.tracking()) {
-	//	if (pinch_pose_.isPinching()) {
-	//		text_label_ = "Pose: PINCH (closed)";
-	//		color_ = Vec4(1.0f, 1.0f, 0.25f, 1.0f);
-	//	} else {
-	//		text_label_ = "Pose: PINCH (open)";
-	//		color_ = Vec4(1.0f, 1.0f, 0.5f, 1.0f);
-	//	}
-	//	return;
-	//}
+	pinch_pose_.update(frame_);
+	if (pinch_pose_.tracking()) {
+		if (pinch_pose_.isPinching()) {
+			text_label_ = "Pose: PINCH (closed)";
+			color_ = Vec4(1.0f, 1.0f, 0.25f, 1.0f);
+		} else {
+			text_label_ = "Pose: PINCH (open)";
+			color_ = Vec4(1.0f, 1.0f, 0.5f, 1.0f);
+		}
+		return;
+	}
 
 	//fist_pose_.update(frame_);
 	//if (fist_pose_.tracking()) {

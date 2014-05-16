@@ -13,6 +13,7 @@
 #include "poses/VPose.h"
 #include "poses/PinchPose.h"
 #include "poses/PointPose2H.h"
+#include "poses/CarryPose.h"
 
 class Renderer
 {
@@ -45,6 +46,7 @@ private:
 	VPose v_pose_;
 	PinchPose pinch_pose_;
 	PointPose2H point_2_pose_;
+	CarryPose carry_pose_;
 
 	void init();
 	void drawGrid();
