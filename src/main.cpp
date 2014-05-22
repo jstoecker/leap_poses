@@ -10,6 +10,7 @@ GLFWwindow* initGL(int width, int height, const char* title)
 	if (!glfwInit())
 		return NULL;
 
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);

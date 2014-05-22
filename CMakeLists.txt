@@ -58,6 +58,9 @@ source_group("main" FILES ${SOURCE_MAIN})
 file(GLOB SOURCE_POSES src/poses/*.cpp src/poses/*.h)
 source_group("poses" FILES ${SOURCE_POSES})
 
+file(GLOB SOURCE_GESTURES src/gestures/*.cpp src/gestures/*.h)
+source_group("gestures" FILES ${SOURCE_GESTURES})
+
 set(SOURCE_AND_RESOURCES
     ${SOURCE_MAIN}
     ${SOURCE_GL}
@@ -65,6 +68,7 @@ set(SOURCE_AND_RESOURCES
     ${SOURCE_GL_UTIL}
     ${SOURCE_GL_MATH}
     ${SOURCE_POSES}
+    ${SOURCE_GESTURES}
     ${DATA_SHADERS}
     ${DATA_FONTS}
 )

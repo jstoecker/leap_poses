@@ -9,6 +9,7 @@ Renderer::Renderer() : vao_(0)
 {
 	grid_size_ = 25.0f;
 	text_label_ = "Pose: None";
+	poses_.enableAll(true);
 }
 
 void Renderer::init()
@@ -69,14 +70,16 @@ void Renderer::draw()
 		drawFrame();
 	}
 
+	text_.clear();
+	text_.hAlign(TextRenderer::HAlign::left);
+	text_.vAlign(TextRenderer::VAlign::top);
 	int y = viewport_.height - 50;
 	for (const ActivePose& active : active_poses_) {
-		text_.begin(viewport_.width, viewport_.height);
-		text_.setColor(active.color.x, active.color.y, active.color.z);
-		text_.add(active.name, 50, y, TextRenderer::LEFT, TextRenderer::TOP);
+		text_.color(active.color);
+		text_.add(active.name, 50.0f, y);
 		y -= 25;
-		text_.end();
 	}
+	text_.draw();
 }
 
 void Renderer::drawFrame()
@@ -181,6 +184,8 @@ void Renderer::resize(int width, int height)
 	viewport_.width = width;
 	viewport_.height = height;
 
+	text_.viewport(viewport_);
+
 	Mat4 projection = perspective(gl::deg_to_rad * 60.0f, viewport_.aspect(), 0.1f, 20.0f);
 	Mat4 view = lookAt({ 0, 4, 5 }, { 0, 3, 0 }, { 0, 1, 0 });
 	viewProjection_ = projection * view;
@@ -193,57 +198,59 @@ void Renderer::updatePoses()
 
 	active_poses_.clear();
 
-	fist_pose_.update(frame_);
-	if (fist_pose_.tracking()) {
-		if (fist_pose_.state() == FistPose::State::closed) {
-			active_poses_.push_back({ "Fist (closed", { 0.6f, 0.25f, 0.25f }, { fist_pose_.hand().id() } });
-		} else if (fist_pose_.state() == FistPose::State::open) {
-			active_poses_.push_back({ "Fist (open)", { 0.75f, 0.75f, 0.85f }, { fist_pose_.hand().id() } });
+	poses_.update(frame_);
+
+	if (poses_.fist().tracking()) {
+		if (poses_.fist().state() == FistPose::State::closed) {
+			active_poses_.push_back({ "Fist (closed", { 0.6f, 0.25f, 0.25f }, { poses_.fist().hand().id() } });
+		} else if (poses_.fist().state() == FistPose::State::open) {
+			active_poses_.push_back({ "Fist (open)", { 0.75f, 0.75f, 0.85f }, { poses_.fist().hand().id() } });
 		}
 	}
 
-	carry_pose_.update(frame_);
-	if (carry_pose_.tracking()) {
-		active_poses_.push_back({  "Carry" , { 1.0f, 0.25f, 0.75f }, {carry_pose_.hand().id()} });
+	if (poses_.carry().tracking()) {
+		active_poses_.push_back({ "Carry", { 1.0f, 0.25f, 0.75f }, { poses_.carry().hand().id() } });
 	}
 
-	point_2_pose_.update(frame_);
-	if (point_2_pose_.tracking()) {
-		active_poses_.push_back({ "Point 2H", { 1.0f, 0.25f, 0.25f }, { point_2_pose_.left().id(), point_2_pose_.right().id() } });
+	if (poses_.point2().tracking()) {
+		active_poses_.push_back({ "Point 2H", { 1.0f, 0.25f, 0.25f }, { poses_.point2().left().id(), poses_.point2().right().id() } });
 	}
 
-	v_pose_.update(frame_);
-	if (v_pose_.tracking()) {
-		if (v_pose_.isClosed()) {
-			active_poses_.push_back({ "V (closed)", { 1.0f, 0.5f, 0.0f }, { v_pose_.hand().id() } });
+	if (poses_.v().tracking()) {
+		if (poses_.v().isClosed()) {
+			active_poses_.push_back({ "V (closed)", { 1.0f, 0.5f, 0.0f }, { poses_.v().hand().id() } });
 		} else {
-			active_poses_.push_back({ "V (open)", { 1.0f, 0.5f, 0.0f }, { v_pose_.hand().id() } });
+			active_poses_.push_back({ "V (open)", { 1.0f, 0.5f, 0.0f }, { poses_.v().hand().id() } });
 		}
 	}
 
-	l_pose_.update(frame_);
-	if (l_pose_.tracking()) {
-		if (l_pose_.isClosed()) {
-			active_poses_.push_back({ "L (closed)", { 0.0f, 1.0f, 0.0f }, { l_pose_.hand().id() } });
+	if (poses_.l().tracking()) {
+		if (poses_.l().isClosed()) {
+			active_poses_.push_back({ "L (closed)", { 0.0f, 1.0f, 0.0f }, { poses_.l().hand().id() } });
 		} else {
-			active_poses_.push_back({ "L (open)", { 0.25f, 1.0f, 0.25f }, { l_pose_.hand().id() } });
+			active_poses_.push_back({ "L (open)", { 0.25f, 1.0f, 0.25f }, { poses_.l().hand().id() } });
 		}
 	}
 
-	point_pose_.update(frame_);
-	if (point_pose_.tracking()) {
-		active_poses_.push_back({ "Point", { 0.0f, 0.0f, 1.0f }, { point_pose_.hand().id() } });
+	if (poses_.point().tracking()) {
+		active_poses_.push_back({ "Point", { 0.0f, 0.0f, 1.0f }, { poses_.point().hand().id() } });
 	}
 
-	pinch_pose_.update(frame_);
-	if (pinch_pose_.tracking()) {
-		if (pinch_pose_.isPinching()) {
-			active_poses_.push_back({ "Pinch", { 1.0f, 1.0f, 0.0f }, { pinch_pose_.hand().id() } });
+	if (poses_.pinch().tracking()) {
+		if (poses_.pinch().isPinching()) {
+			active_poses_.push_back({ "Pinch", { 1.0f, 1.0f, 0.0f }, { poses_.pinch().hand().id() } });
 		}
 	}
 
-	palms_face_pose_.update(frame_);
-	if (palms_face_pose_.tracking()) {
-		active_poses_.push_back({ "Palms Face", { 0.0f, 1.0f, 1.0f }, { palms_face_pose_.left().id(), palms_face_pose_.right().id() } });
+	if (poses_.palmsFace().tracking()) {
+		active_poses_.push_back({ "Palms Face", { 0.0f, 1.0f, 1.0f }, { poses_.palmsFace().left().id(), poses_.palmsFace().right().id() } });
+	}
+
+	if (poses_.push().tracking()) {
+		if (poses_.push().isClosed()) {
+			active_poses_.push_back({ "Push (closed)", { 0.5f, 1.0f, 0.5f }, { poses_.push().hand().id() } });
+		} else {
+			active_poses_.push_back({ "Push (open)", { 0.5f, 1.0f, 0.5f }, { poses_.push().hand().id() } });
+		}
 	}
 }

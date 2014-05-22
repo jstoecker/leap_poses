@@ -1,10 +1,10 @@
 #include "FistPose.h"
 
 using namespace Leap;
+using namespace std::chrono;
 
 FistPose::FistPose() : state_(State::open)
 {
-	minValidFrames(5);
 	maxHandEngageSpeed(175.0f);
 }
 
@@ -32,13 +32,33 @@ bool FistPose::shouldDisengage(const Frame& frame)
 
 void FistPose::track(const Frame& frame)
 {
-	if (hand().grabStrength() < 0.95f) {
-		if (hand().fingers().extended().count() == 5) {
+	int num_extended = hand().fingers().extended().count();
+	float grab = hand().grabStrength();
+
+	State prev = state_;
+	state_ = State::partial;
+	if (num_extended == 5) {
+		if (grab == 0.0f) {
 			state_ = State::open;
-		} else {
-			state_ = State::partial;
 		}
+	} else if (num_extended == 3) {
+		if (grab == 0.0f && hand().fingers()[0].isExtended() && hand().fingers()[1].isExtended() && hand().fingers()[2].isExtended()) {
+			state_ = State::three_out;
+		}
+	} else if (num_extended == 1) {
+		if (grab == 1.0f && hand().fingers()[Finger::TYPE_THUMB].isExtended()) {
+			state_ = State::thumb_out;
+		}
+	} else if (num_extended == 0) {
+		if (grab  > 0.95f) {
+			state_ = State::closed;
+		}
+	}
+
+	if (prev != state_) {
+		last_change_ = high_resolution_clock::now();
+		time_since_change_ = milliseconds::zero();
 	} else {
-		state_ = State::closed;
+		time_since_change_ = duration_cast<milliseconds>(high_resolution_clock::now() - last_change_);
 	}
 }

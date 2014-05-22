@@ -7,14 +7,7 @@
 #include "Leap.h"
 #include "gl/geom/Sphere.h"
 #include "gl/util/TextRenderer.h"
-#include "poses/PointPose.h"
-#include "poses/FistPose.h"
-#include "poses/LPose.h"
-#include "poses/VPose.h"
-#include "poses/PinchPose.h"
-#include "poses/PointPose2H.h"
-#include "poses/CarryPose.h"
-#include "poses/PalmsFacePose.h"
+#include "poses/PoseTracker.h"
 #include <vector>
 
 class Renderer
@@ -51,14 +44,7 @@ private:
 	Leap::Controller controller_;
 	float grid_size_;
 
-	PointPose point_pose_;
-	FistPose fist_pose_;
-	LPose l_pose_;
-	VPose v_pose_;
-	PinchPose pinch_pose_;
-	PointPose2H point_2_pose_;
-	CarryPose carry_pose_;
-	PalmsFacePose palms_face_pose_;
+	PoseTracker poses_;
 
 	void init();
 	void drawGrid();

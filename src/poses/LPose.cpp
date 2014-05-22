@@ -9,7 +9,7 @@ LPose::LPose() :
 	open_fn_(nullptr),
 	close_fn_(nullptr)
 {
-	maxHandEngageSpeed(35.0f);
+	maxHandEngageSpeed(55.0f);
 }
 
 bool LPose::shouldEngage(const Frame& frame)
@@ -38,6 +38,17 @@ bool LPose::shouldEngage(const Frame& frame)
 	}
 
 	if (fingers[Finger::TYPE_RING].isExtended() || fingers[Finger::TYPE_PINKY].isExtended()) {
+		return false;
+	}
+
+	Vector u = pointer_.direction();
+	u.y = 0;
+	u = u.normalized();
+	Vector v = thumb_.direction();
+	v.y = 0;
+	v = v.normalized();
+	float angle = u.angleTo(v);
+	if (angle < 0.5f) {
 		return false;
 	}
 
@@ -82,7 +93,8 @@ void LPose::track(const Frame& frame)
 	float angle = u.angleTo(v);
 
 	bool was_closed = closed_;
-	closed_ = (angle <= 0.3f);
+
+	closed_ = (angle <= 0.3f) && fingerMotion() < 300.0f;
 
 	if (hand().confidence() > 0.75f && was_closed && !closed_) {
 		if (open_fn_) {
@@ -95,6 +107,7 @@ void LPose::track(const Frame& frame)
 			}
 		}
 	} else if (hand().confidence() > 0.75f && !was_closed && closed_) {
+		pointer_closed_ = pointer_;
 		if (close_fn_) {
 			close_fn_(frame);
 		}
